@@ -1,4 +1,4 @@
-name: Convert Notebooks to Python with Jupytext
+name: Strip Jupyter Notebook Metadata
 
 on:
   push:
@@ -8,36 +8,31 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write  # Allows GitHub Actions to push changes
-
 jobs:
-  convert_notebooks:
+  strip_notebooks:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install Jupytext
+      - name: Install nbstripout
         run: |
-          pip install jupytext
+          pip install nbstripout
 
-      - name: Convert Notebooks to Python Scripts
+      - name: Strip output and metadata from notebooks
         run: |
-          find . -name "*.ipynb" -exec jupytext --set-formats ipynb,py {} \;
+          find . -name "*.ipynb" -exec nbstripout {} \;
 
-      - name: Commit and Push Converted Files
+      - name: Commit cleaned notebooks (if changes exist)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --cached --quiet || git commit -m "Convert notebooks to Python scripts using Jupytext"
+          git diff --cached --quiet || git commit -m "Strip notebook outputs and metadata"
           git push
