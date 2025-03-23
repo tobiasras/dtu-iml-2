@@ -1,0 +1,38 @@
+name: Strip Jupyter Notebook Metadata
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  strip_notebooks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install nbstripout
+        run: |
+          pip install nbstripout
+
+      - name: Strip output and metadata from notebooks
+        run: |
+          find . -name "*.ipynb" -exec nbstripout {} \;
+
+      - name: Commit cleaned notebooks (if changes exist)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Strip notebook outputs and metadata"
+          git push
